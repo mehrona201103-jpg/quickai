@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>QUICK AI</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#070A12;--panel:#0E1424;--line:#1B2440;--tx:#E8ECF8;--mut:#7B88AD;--up:#19E3A0;--dn:#FF4D6A;--ac:#6C7BFF}
+*{box-sizing:border-box;margin:0}
+body{background:radial-gradient(900px 500px at 80% -10%,#1a2150 0,transparent 60%),var(--bg);color:var(--tx);font:14px Manrope,sans-serif;min-height:100vh;padding:14px 14px 30px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:8px}
+.logo{font:800 20px Unbounded;letter-spacing:.5px}.logo i{font-style:normal;color:var(--ac)}
+.hr{display:flex;align-items:center;gap:6px}
+.lg{padding:5px 8px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--mut);font:700 11px Manrope}
+.lg.on{color:#fff;border-color:var(--ac);background:#1a2150}
+.snd{font-size:16px;background:none;border:0;color:var(--tx);padding:2px 4px}
+.live b{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--up);animation:p 1.4s infinite}
+@keyframes p{0%{box-shadow:0 0 0 0 #19e3a088}100%{box-shadow:0 0 0 9px #19e3a000}}
+.row{display:flex;gap:8px;overflow-x:auto;margin-bottom:10px;scrollbar-width:none}
+.chip{padding:8px 14px;border-radius:99px;background:var(--panel);border:1px solid var(--line);color:var(--mut);white-space:nowrap;font-weight:600;cursor:pointer}
+.chip.on{color:#fff;border-color:var(--ac);background:#1a2150}
+.lbl{color:var(--mut);font-size:12px;margin:0 2px 6px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:14px;margin-bottom:12px;position:relative;overflow:hidden}
+.top{display:flex;justify-content:space-between;align-items:flex-end}
+.price{font:800 26px Unbounded;transition:color .2s}.pair{color:var(--mut);font-size:12px;margin-bottom:2px}
+.tfl{color:var(--mut);font-size:12px;text-align:right;line-height:1.5}
+canvas{width:100%;height:260px;display:block;margin-top:8px}
+.state{min-height:150px;display:flex;flex-direction:column;justify-content:center}
+.idle{text-align:center;color:var(--mut);line-height:1.6}
+.idle b{display:block;color:var(--tx);font:700 16px Unbounded;margin-bottom:6px}
+.sig{display:flex;align-items:center;gap:14px}
+.dir{font:800 28px Unbounded;padding:14px 18px;border-radius:14px;min-width:130px;text-align:center}
+.CALL{background:#19e3a01f;color:var(--up)}.PUT{background:#ff4d6a1f;color:var(--dn)}.WAIT{background:#7b88ad22;color:var(--mut)}
+.bar{height:6px;background:var(--line);border-radius:9px;overflow:hidden;margin-top:6px}
+.bar div{height:100%;background:linear-gradient(90deg,var(--ac),var(--up));width:0;transition:width 1s}
+.act{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.act div{background:#0a1020;border-radius:12px;padding:10px}.act small{color:var(--mut)}
+ul{padding-left:18px;color:var(--mut);line-height:1.7;margin-top:10px}
+.warn{font-size:11px;color:var(--mut);line-height:1.5;text-align:center;margin-top:8px}
+button.go{width:100%;padding:16px;border:0;border-radius:14px;font:700 15px Manrope;color:#fff;background:linear-gradient(90deg,#5563ff,#8a5bff);box-shadow:0 8px 26px #5563ff55;transition:transform .1s,opacity .2s}
+button.go:active{transform:scale(.98)}button.go:disabled{opacity:.55}
+.an{text-align:center}
+.an .ring{width:54px;height:54px;border-radius:50%;margin:0 auto 12px;border:3px solid var(--line);border-top-color:var(--ac);border-right-color:var(--up);animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.an .step{font-weight:700;min-height:20px}.an .pb{height:5px;background:var(--line);border-radius:9px;margin-top:12px;overflow:hidden}
+.an .pb div{height:100%;width:0;background:linear-gradient(90deg,var(--ac),var(--up))}
+.reveal{animation:rv .5s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes rv{from{opacity:0;transform:scale(.92) translateY(8px)}to{opacity:1;transform:none}}
+.h{font:700 13px Unbounded;margin-bottom:10px}
+.trow{display:flex;align-items:center;gap:10px}.tag{padding:6px 10px;border-radius:10px;font-weight:700}
+.cd{margin-left:auto;font:800 22px Unbounded}
+.pbar{height:5px;background:var(--line);border-radius:9px;overflow:hidden;margin:12px 0 8px}.pbar div{height:100%;background:linear-gradient(90deg,var(--ac),var(--up));transition:width 1s linear}
+small.m{color:var(--mut)}
+.res{text-align:center;font:800 20px Unbounded;padding:6px 0}.res.win{color:var(--up)}.res.lose{color:var(--dn)}.res.draw{color:var(--mut)}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.grid3 div{background:#0a1020;border-radius:12px;padding:10px;text-align:center}.grid3 b{display:block;font:700 16px Unbounded;margin-top:2px}.grid3 small{color:var(--mut)}
+.hi{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px solid var(--line);font-size:13px}
+.hi span:last-child{font-weight:700}.W{color:var(--up)}.L{color:var(--dn)}.D{color:var(--mut)}
+input.in{width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);background:#0a1020;color:var(--tx);font:600 15px Manrope;margin-bottom:10px}
+.rk{display:flex;gap:8px;margin-bottom:10px}.rk .chip{flex:1;text-align:center;padding:9px 0}
+.lim{text-align:center;color:var(--mut);font-size:12px;margin-top:8px}
+.cal{display:flex;gap:6px;margin-top:10px}.cal input{flex:1;min-width:0;padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:#0a1020;color:var(--tx);font:600 13px Manrope}
+.cal button{padding:9px 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--tx);font:700 12px Manrope}
+.calnote{color:var(--mut);font-size:11px;margin-top:6px}
+.streak{display:none;background:#ff4d6a14;border:1px solid #ff4d6a55;color:#ffb3c0;border-radius:14px;padding:12px;margin-bottom:12px;line-height:1.5;font-size:13px}
+#lock{position:fixed;inset:0;background:var(--bg);display:none;align-items:center;justify-content:center;padding:30px;text-align:center;z-index:9;line-height:1.6;color:var(--mut)}
+#lock b{display:block;color:var(--tx);font:800 20px Unbounded;margin-bottom:10px}
+@media (prefers-reduced-motion:reduce){.an .ring,.live b,.reveal{animation:none}}
+body{padding-bottom:96px}
+.view{display:none}.view.on{display:block}
+.wz{display:none}.wz.on{display:block;animation:rv .35s}
+.wh{font:700 16px Unbounded;margin:6px 2px 14px}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pc{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px 10px;text-align:center;font:700 15px Unbounded;cursor:pointer;transition:transform .1s,border-color .2s}
+.pc:active{transform:scale(.97)}.pc.on{border-color:var(--ac);background:#1a2150}
+.pc small{display:block;margin-top:6px;color:var(--mut);font:600 11px Manrope}
+.tgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.tb{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:26px 6px;text-align:center;cursor:pointer;font:800 18px Unbounded}
+.tb:active{transform:scale(.97)}.tb.on{border-color:var(--ac);background:#1a2150}
+.back{background:none;border:0;color:var(--mut);font:700 13px Manrope;padding:4px 2px;margin-bottom:6px}
+.anw{text-align:center;padding:18px 0}
+.ringw{position:relative;width:130px;height:130px;margin:14px auto}
+.bigring{position:absolute;inset:0;border-radius:50%;border:4px solid var(--line);border-top-color:var(--ac);border-right-color:var(--up);animation:sp 1s linear infinite}
+.ringw span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:800 24px Unbounded}
+.anp{color:var(--mut);font-weight:700}.ant{font:700 16px Unbounded;margin-top:10px}
+.anw .pb{height:5px;background:var(--line);border-radius:9px;margin:16px 6px 8px;overflow:hidden}
+.anw .pb div{height:100%;width:0;background:linear-gradient(90deg,var(--ac),var(--up))}
+.ans{color:var(--mut);min-height:20px}
+.rcb{padding:16px}
+.rhead{display:flex;justify-content:space-between;color:var(--mut);font-weight:700;margin-bottom:12px}
+.bigdir{border-radius:18px;padding:26px 10px;text-align:center;font:800 38px Unbounded;border:1px solid;display:flex;flex-direction:column;align-items:center;gap:6px}
+.bigdir span{font-size:24px}
+.bigdir.CALL{background:#19e3a01a;color:var(--up);border-color:#19e3a066;box-shadow:0 0 40px #19e3a025}
+.bigdir.PUT{background:#ff4d6a1a;color:var(--dn);border-color:#ff4d6a66;box-shadow:0 0 40px #ff4d6a25}
+.bigdir.WAIT{background:#7b88ad22;color:var(--mut);border-color:var(--line);font-size:26px}
+.rrow{display:flex;justify-content:space-between;align-items:center;margin:14px 0 6px}.rrow small{color:var(--mut)}
+.cn{color:var(--mut);font-size:11px;margin-top:6px}
+.wbtn{width:100%;padding:15px;border:0;border-radius:14px;background:#EEF1FB;color:#0b1020;font:700 15px Manrope;margin-top:14px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.sbtn{padding:13px 6px;border-radius:14px;border:1px solid var(--line);background:var(--panel);color:var(--tx);font:700 13px Manrope}
+.lnk{display:block;width:100%;background:none;border:0;color:var(--ac);font:700 13px Manrope;margin-top:10px;padding:6px}
+details{margin-top:12px;color:var(--mut)}details summary{cursor:pointer;font-weight:700;color:var(--tx)}
+.tabs{position:fixed;left:0;right:0;bottom:0;display:flex;background:rgba(14,20,36,.96);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:8px 8px calc(8px + env(safe-area-inset-bottom,0px));z-index:5}
+.tabs button{flex:1;background:none;border:0;color:var(--mut);font:700 11px Manrope;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0}
+.tabs button span{font-size:19px}.tabs button i{font-style:normal}.tabs button.on{color:#fff}.tabs button.on span{filter:drop-shadow(0 0 6px var(--ac))}
+@media (prefers-reduced-motion:reduce){.bigring{animation:none}}
+.tp{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:14px}
+.tcol{display:flex;flex-direction:column;align-items:center;gap:8px}
+.tcol button{width:76px;padding:10px 0;border-radius:12px;border:0;background:#161f38;color:var(--mut);font:700 20px Manrope}
+.tcol button:active{background:#1f2a4d}.tcol b{font:800 34px Unbounded}.tp i{font:700 28px Unbounded;font-style:normal;color:var(--mut);margin-top:-2px}
+.presets{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 4px}
+.prow{display:flex;align-items:center;gap:10px;margin-bottom:12px;font-weight:700}
+.badge{padding:5px 10px;border-radius:9px;background:#7b88ad22;color:var(--mut);font:800 12px Unbounded}.badge.pro{background:linear-gradient(90deg,#FFB84D,#ff7a59);color:#1a1006}
+.offer{color:var(--mut);line-height:1.6;margin:14px 0 4px}
+.dots{display:flex;gap:6px;margin:12px 0 4px}.dot{width:14px;height:14px;border-radius:50%;background:var(--line)}.dot.W{background:var(--up)}.dot.L{background:var(--dn)}.dot.D{background:#7b88ad}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.tiles div{background:#0a1020;border-radius:12px;padding:10px}.tiles small{color:var(--mut);display:block;margin-bottom:4px}.tiles b{font:700 14px Unbounded}
+.ach{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.ab{background:#0a1020;border:1px solid var(--line);border-radius:12px;padding:12px 6px;text-align:center;font-size:12px;font-weight:700;opacity:.45}
+.ab.on{opacity:1;border-color:#FFB84D66;box-shadow:0 0 18px #FFB84D18}.ab span{display:block;font-size:22px;margin-bottom:4px}
+</style></head><body>
+<div id="lock"><div><b data-i="lock_t"></b><span id="lockmsg"></span></div></div>
+<header><div class="logo">QUICK<i>AI</i></div>
+  <div class="hr"><button class="snd" id="snd">🔊</button><span id="lgs"></span><span class="live"><b></b></span></div></header>
+<div class="box" id="trade" style="display:none"></div>
+<section id="v-sig" class="view on">
+  <div id="w-pair" class="wz on"><div class="wh" data-i="pick_pair"></div><div class="pgrid" id="pg"></div></div>
+  <div id="w-time" class="wz"><button class="back" id="b-time" data-i="back"></button><div class="wh" id="wt-h"></div><div class="tp">
+    <div class="tcol"><button data-st="3600">+</button><b id="tp-h">00</b><button data-st="-3600">−</button></div><i>:</i>
+    <div class="tcol"><button data-st="60">+</button><b id="tp-m">01</b><button data-st="-60">−</button></div><i>:</i>
+    <div class="tcol"><button data-st="15">+</button><b id="tp-s">00</b><button data-st="-15">−</button></div></div>
+  <div class="presets" id="presets"></div>
+  <button class="wbtn" id="t-go" data-i="time_go"></button></div>
+  <div id="w-an" class="wz"><div class="anw"><div class="ringw"><div class="bigring"></div><span id="an-pct">0%</span></div><div class="anp" id="an-pair"></div><div class="ant" id="an-t"></div><div class="pb"><div id="an-fill"></div></div><div class="ans" id="an-s"></div></div></div>
+  <div id="w-res" class="wz"><div class="box rcb" id="rc"></div></div>
+  <div class="lim" id="lim"></div>
+</section>
+<section id="v-chart" class="view">
+<div class="row" id="pairs"></div>
+<div class="lbl" data-i="expiry"></div>
+<div class="row" id="tfs"></div>
+<div class="row" id="inds"></div>
+<div class="box">
+  <div class="top"><div><div class="pair" id="pn">EUR/USD</div><div class="price" id="pr">—</div></div><div class="tfl"><div id="tl"></div><div id="src"></div></div></div>
+  <canvas id="cv"></canvas>
+  <div class="cal"><input id="calin" type="number" step="any" inputmode="decimal" data-ph="cal_ph"><button id="calbtn" data-i="cal_btn"></button><button id="calrst" data-i="cal_rst"></button></div>
+  <div class="calnote" id="calnote"></div>
+</div>
+</section>
+<section id="v-prof" class="view">
+<div class="streak" id="streak"></div>
+<div class="box" id="plan"></div><div class="box" id="rank"></div><div class="box" id="ach"></div>
+<div style="display:none"><div id="state"></div><button id="go"></button></div>
+<div class="box" style="margin-top:12px"><div class="h" data-i="risk_t"></div>
+  <input class="in" id="dep" type="number" inputmode="decimal" data-ph="dep_ph">
+  <div class="rk" id="rk"></div><div id="rkout" style="color:var(--mut);line-height:1.6"></div></div>
+<div class="box"><div class="h" data-i="hist_t"></div><div id="stats"></div><div id="hist"></div></div>
+</section>
+<nav class="tabs"><button data-tab="sig" class="on"><span>⚡</span><i data-i="tab_sig"></i></button><button data-tab="chart"><span>📈</span><i data-i="tab_chart"></i></button><button data-tab="prof"><span>👤</span><i data-i="tab_prof"></i></button></nav>
+<script>
+const tg=window.Telegram?.WebApp;tg?.ready();tg?.expand();tg?.setHeaderColor?.('#070A12');tg?.setBackgroundColor?.('#070A12');
+const I={
+ru:{tab_sig:'Сигнал',tab_chart:'График',tab_prof:'Профиль',pick_pair:'Выберите пару',pick_time:'Выберите время',back:'← Назад',cat_fx:'Форекс',cat_cr:'Крипто',an1:'Анализ графиков…',an2:'Проверка индикаторов…',conf:'Уверенность',conf_hi:'Высокая',conf_mid:'Средняя',conf_lo:'Низкая',conf_note:'Это согласованность индикаторов, а не вероятность выигрыша.',why:'Почему этот сигнал',again:'Повторить',chg_time:'Сменить время',chg_pair:'Сменить пару',open_chart:'Открыть график',
+lock_t:'Доступ закрыт',lock_unauth:'Откройте терминал из бота в Telegram',lock_forbid:'Вернитесь в бота: подписка, регистрация, депозит',expiry:'Время экспирации',tf1min:'1 мин',tf5min:'5 мин',tf15min:'15 мин',
+ cal_ph:'Цена в Pocket Option',cal_btn:'Сверить',cal_rst:'Сброс',cal_hint:'Введите цену из Pocket Option, и график подстроится под неё.',cal_off:'Поправка к цене: {o}. Применяется только к отображению.',cal_big:'Расхождение слишком большое. Проверьте, что выбрана та же пара.',
+ tl:'Heikin Ashi · экспирация {tf}',src_sim:'Цена обновляется раз в 20 с',src_bin:'Реальные тики Binance',src_td:'Реальные тики Twelve Data',
+ idle_t:'Готов к анализу',idle_d:'Нажмите «Получить сигнал», и QUICK AI проверит рынок по свечам Heikin Ashi и подтвердит сигнал на старшем таймфрейме.',
+ wait_t:'Подождите',err_busy:'Дождитесь окончания текущей сделки',err_limit:'Дневной лимит сигналов исчерпан ({n}). Это защита от переторговли. Приглашайте друзей командой /invite, чтобы увеличить лимит.',err_data:'Не удалось получить котировки. Подождите минуту и повторите.',err_bad:'Неверный запрос',err_generic:'Что-то пошло не так. Повторите попытку.',
+ go:'Получить сигнал',go_busy:'Анализирую…',lim:'Сигналов сегодня: {u} из {l}',no_sig:'Сигнал не получен',
+ s1:'Считываю свечи Heikin Ashi…',s2:'Считаю RSI и перегретость рынка…',s3:'Проверяю Супертренд и канал Дончиана…',s4:'Сверяю EMA и MACD…',s5:'Подтверждаю на старшем таймфрейме…',s6:'Проверяю экономические новости…',
+ strength:'Сила сигнала',entry:'Вход',now:'Сейчас',waitv:'Ждать',exp:'Экспирация',
+ trade_t:'Активная сделка',entry_price:'Цена входа {p} · экспирация {tf}',res_t:'Результат',res_W:'Сделка в плюсе',res_L:'Сделка в минусе',res_D:'Цена не изменилась',res_X:'Результат недоступен',
+ res_note:'{pair}: вход {a} → выход {b}. Расчёт по котировкам Twelve Data, на Pocket Option цена может немного отличаться.',
+ risk_t:'Калькулятор ставки',dep_ph:'Ваш депозит, $',risk_out:'Рекомендуемая ставка: {a} ({r}% от депозита). Не повышайте ставку после проигрыша.',risk_hint:'Введите депозит, и я покажу безопасный размер ставки.',
+ hist_t:'История и статистика',st_total:'Сделок',st_w:'В плюсе',st_l:'В минусе',st_pct:'Процент плюсовых: {p}%. Учитываются все ваши сделки.',st_empty:'Пока пусто. После первого сигнала здесь появятся ваши результаты.',h_W:'плюс',h_L:'минус',h_D:'ничья',
+ streak:'Серия из {n} минусов подряд. Сделайте перерыв: эмоции мешают торговать. Не повышайте ставку, чтобы отыграться.',
+ ind_st:'Супертренд',ind_dc:'Дончиан',ind_ema:'EMA',
+ warn:'Сигналы строятся по свечам Heikin Ashi и индикаторам (Супертренд, Дончиан, EMA, MACD, RSI) и не гарантируют прибыль. Бинарные опционы — высокий риск потери капитала. Рискуйте не более 1–5% депозита на сделку.'},
+uz:{tab_sig:"Signal",tab_chart:"Grafik",tab_prof:"Profil",pick_pair:"Juftlikni tanlang",pick_time:"Vaqtni tanlang",back:"← Orqaga",cat_fx:"Forex",cat_cr:"Kripto",an1:"Grafiklar tahlil qilinmoqda…",an2:"Indikatorlar tekshirilmoqda…",conf:"Ishonch",conf_hi:"Yuqori",conf_mid:"O'rta",conf_lo:"Past",conf_note:"Bu indikatorlar mosligi, yutuq ehtimoli emas.",why:"Nega bu signal",again:"Takrorlash",chg_time:"Vaqtni o'zgartirish",chg_pair:"Juftlikni o'zgartirish",open_chart:"Grafikni ochish",
+lock_t:'Kirish yopiq',lock_unauth:'Terminalni Telegramdagi botdan oching',lock_forbid:'Botga qayting: obuna, ro\'yxatdan o\'tish, depozit',expiry:'Tugash vaqti',tf1min:'1 daq',tf5min:'5 daq',tf15min:'15 daq',
+ cal_ph:'Pocket Option narxi',cal_btn:'Moslash',cal_rst:'Tiklash',cal_hint:'Pocket Option narxini kiriting, grafik shunga moslashadi.',cal_off:'Narx tuzatmasi: {o}. Faqat ko\'rinishga ta\'sir qiladi.',cal_big:'Farq juda katta. Bir xil juftlik tanlanganini tekshiring.',
+ tl:'Heikin Ashi · tugash {tf}',src_sim:'Narx har 20 soniyada yangilanadi',src_bin:'Binance real tiklari',src_td:'Twelve Data real tiklari',
+ idle_t:'Tahlilga tayyor',idle_d:'«Signal olish» tugmasini bosing, QUICK AI bozorni Heikin Ashi shamlari bo\'yicha tekshiradi va signalni yuqori taymfreymda tasdiqlaydi.',
+ wait_t:'Kuting',err_busy:'Joriy bitim tugashini kuting',err_limit:'Kunlik signal limiti tugadi ({n}). Bu ortiqcha savdodan himoya. Limitni oshirish uchun /invite orqali do\'stlarni taklif qiling.',err_data:'Narxlarni olib bo\'lmadi. Bir daqiqa kutib, qayta urinib ko\'ring.',err_bad:'Noto\'g\'ri so\'rov',err_generic:'Nimadir xato ketdi. Qayta urinib ko\'ring.',
+ go:'Signal olish',go_busy:'Tahlil qilinmoqda…',lim:'Bugungi signallar: {u} / {l}',no_sig:'Signal olinmadi',
+ s1:'Heikin Ashi shamlari o\'qilmoqda…',s2:'RSI va bozor qizib ketishi hisoblanmoqda…',s3:'Supertrend va Donchian kanali tekshirilmoqda…',s4:'EMA va MACD solishtirilmoqda…',s5:'Yuqori taymfreymda tasdiqlanmoqda…',s6:'Iqtisodiy yangiliklar tekshirilmoqda…',
+ strength:'Signal kuchi',entry:'Kirish',now:'Hozir',waitv:'Kutish',exp:'Tugash',
+ trade_t:'Faol bitim',entry_price:'Kirish narxi {p} · tugash {tf}',res_t:'Natija',res_W:'Bitim foydada',res_L:'Bitim zararda',res_D:'Narx o\'zgarmadi',res_X:'Natija mavjud emas',
+ res_note:'{pair}: kirish {a} → chiqish {b}. Hisob Twelve Data narxlari bo\'yicha, Pocket Option\'da narx biroz farq qilishi mumkin.',
+ risk_t:'Stavka kalkulyatori',dep_ph:'Depozitingiz, $',risk_out:'Tavsiya etilgan stavka: {a} (depozitning {r}%). Yutqazgandan keyin stavkani oshirmang.',risk_hint:'Depozitni kiriting, xavfsiz stavka hajmini ko\'rsataman.',
+ hist_t:'Tarix va statistika',st_total:'Bitimlar',st_w:'Foydada',st_l:'Zararda',st_pct:'Foydali bitimlar ulushi: {p}%. Barcha bitimlaringiz hisobga olinadi.',st_empty:'Hozircha bo\'sh. Birinchi signaldan keyin natijalaringiz shu yerda paydo bo\'ladi.',h_W:'foyda',h_L:'zarar',h_D:'durang',
+ streak:'Ketma-ket {n} ta zarar. Tanaffus qiling: hissiyotlar savdoga xalaqit beradi. O\'rnini qoplash uchun stavkani oshirmang.',
+ ind_st:'Supertrend',ind_dc:'Donchian',ind_ema:'EMA',
+ warn:'Signallar Heikin Ashi shamlari va indikatorlar (Supertrend, Donchian, EMA, MACD, RSI) asosida tuziladi va foydani kafolatlamaydi. Binar optsionlar kapitalni yo\'qotish xavfi yuqori. Bitimga depozitning 1–5% dan ko\'pini tavakkal qilmang.'},
+en:{tab_sig:'Signal',tab_chart:'Chart',tab_prof:'Profile',pick_pair:'Pick a pair',pick_time:'Pick a time',back:'← Back',cat_fx:'Forex',cat_cr:'Crypto',an1:'Analyzing charts…',an2:'Checking indicators…',conf:'Confidence',conf_hi:'High',conf_mid:'Medium',conf_lo:'Low',conf_note:'This is indicator agreement, not a win probability.',why:'Why this signal',again:'Repeat',chg_time:'Change time',chg_pair:'Change pair',open_chart:'Open chart',
+lock_t:'Access closed',lock_unauth:'Open the terminal from the bot in Telegram',lock_forbid:'Go back to the bot: subscription, registration, deposit',expiry:'Expiry time',tf1min:'1 min',tf5min:'5 min',tf15min:'15 min',
+ cal_ph:'Pocket Option price',cal_btn:'Match',cal_rst:'Reset',cal_hint:'Enter the Pocket Option price and the chart will adjust to it.',cal_off:'Price offset: {o}. Applies to display only.',cal_big:'The difference is too large. Check that the same pair is selected.',
+ tl:'Heikin Ashi · expiry {tf}',src_sim:'Price refreshes every 20 s',src_bin:'Real Binance ticks',src_td:'Real Twelve Data ticks',
+ idle_t:'Ready to analyze',idle_d:'Tap “Get signal” and QUICK AI will scan the market on Heikin Ashi candles and confirm the signal on a higher timeframe.',
+ wait_t:'Please wait',err_busy:'Wait for the current trade to finish',err_limit:'Daily signal limit reached ({n}). This protects against overtrading. Invite friends with /invite to raise the limit.',err_data:'Could not get quotes. Wait a minute and try again.',err_bad:'Bad request',err_generic:'Something went wrong. Please try again.',
+ go:'Get signal',go_busy:'Analyzing…',lim:'Signals today: {u} of {l}',no_sig:'No signal received',
+ s1:'Reading Heikin Ashi candles…',s2:'Calculating RSI and market overheating…',s3:'Checking Supertrend and Donchian channel…',s4:'Cross-checking EMA and MACD…',s5:'Confirming on a higher timeframe…',s6:'Checking economic news…',
+ strength:'Signal strength',entry:'Entry',now:'Now',waitv:'Wait',exp:'Expiry',
+ trade_t:'Active trade',entry_price:'Entry price {p} · expiry {tf}',res_t:'Result',res_W:'Trade in profit',res_L:'Trade in loss',res_D:'Price did not change',res_X:'Result unavailable',
+ res_note:'{pair}: entry {a} → exit {b}. Calculated from Twelve Data quotes, the price on Pocket Option may differ slightly.',
+ risk_t:'Stake calculator',dep_ph:'Your deposit, $',risk_out:'Recommended stake: {a} ({r}% of deposit). Do not raise your stake after a loss.',risk_hint:'Enter your deposit and I will show a safe stake size.',
+ hist_t:'History and stats',st_total:'Trades',st_w:'Profit',st_l:'Loss',st_pct:'Win rate: {p}%. All your trades are counted.',st_empty:'Empty for now. Your results will appear here after the first signal.',h_W:'win',h_L:'loss',h_D:'draw',
+ streak:'{n} losses in a row. Take a break: emotions hurt trading. Do not raise your stake to win it back.',
+ ind_st:'Supertrend',ind_dc:'Donchian',ind_ema:'EMA',
+ warn:'Signals are built on Heikin Ashi candles and indicators (Supertrend, Donchian, EMA, MACD, RSI) and do not guarantee profit. Binary options carry a high risk of losing capital. Risk no more than 1–5% of your deposit per trade.'}};
+Object.assign(I.ru,{tl:'Heikin Ashi · {tf}',res_note:'{pair}: {a} → {b}',err_nocredits:'Бесплатные сигналы закончились. Пригласите друга (+{n} сигнала) или оформите Pro.',plan_free:'Бесплатный тариф',credits_left:'Осталось сигналов: {n}',pro_active:'PRO активен',pro_until:'до {d}',pro_forever:'без ограничений',invite_btn:'👥 Пригласить друга',buy_pro:'👑 Купить Pro',offer:'Pro на {days} дней: безлимитные сигналы.<br>{stars} ⭐ или {usdt} USDT',pay_stars:'⭐ Telegram Stars',pay_crypto:'💎 CryptoBot',share_txt:'QUICK AI — сигналы и анализ рынка в реальном времени',rank_t:'Ранг',to_next:'До ранга «{n}»: ещё {k}',rank_max:'Максимальный ранг',r0:'Новичок',r1:'Ученик',r2:'Трейдер',r3:'Профи',r4:'Мастер',r5:'Легенда',last10:'Последние 10 сделок',best_pair:'Лучшая пара',best_streak:'Лучшая серия плюсов',ach_t:'Достижения',a1:'Первый сигнал',a2:'10 сделок',a3:'3 плюса подряд',a4:'50 сделок',a5:'Позвал друга',a6:'Pro-трейдер',time_go:'Получить сигнал',u_h:'ч',u_m:'мин',u_s:'сек'});
+Object.assign(I.uz,{tl:'Heikin Ashi · {tf}',res_note:'{pair}: {a} → {b}',err_nocredits:"Bepul signallar tugadi. Do'st taklif qiling (+{n} signal) yoki Pro oling.",plan_free:'Bepul tarif',credits_left:'Qolgan signallar: {n}',pro_active:'PRO faol',pro_until:'{d} gacha',pro_forever:'cheklovsiz',invite_btn:"👥 Do'st taklif qilish",buy_pro:'👑 Pro sotib olish',offer:'{days} kunlik Pro: cheksiz signallar.<br>{stars} ⭐ yoki {usdt} USDT',pay_stars:'⭐ Telegram Stars',pay_crypto:'💎 CryptoBot',share_txt:'QUICK AI — real vaqtda bozor tahlili va signallar',rank_t:'Daraja',to_next:'«{n}» darajasigacha: yana {k}',rank_max:'Eng yuqori daraja',r0:'Yangi',r1:"O'quvchi",r2:'Treyder',r3:'Pro',r4:'Usta',r5:'Afsona',last10:'Oxirgi 10 bitim',best_pair:'Eng yaxshi juftlik',best_streak:'Eng uzun foyda seriyasi',ach_t:'Yutuqlar',a1:'Birinchi signal',a2:'10 bitim',a3:'Ketma-ket 3 foyda',a4:'50 bitim',a5:"Do'st taklif qildi",a6:'Pro-treyder',time_go:'Signal olish',u_h:'s',u_m:'daq',u_s:'son'});
+Object.assign(I.en,{tl:'Heikin Ashi · {tf}',res_note:'{pair}: {a} → {b}',err_nocredits:'Free signals are over. Invite a friend (+{n} signals) or get Pro.',plan_free:'Free plan',credits_left:'Signals left: {n}',pro_active:'PRO active',pro_until:'until {d}',pro_forever:'no limits',invite_btn:'👥 Invite a friend',buy_pro:'👑 Get Pro',offer:'Pro for {days} days: unlimited signals.<br>{stars} ⭐ or {usdt} USDT',pay_stars:'⭐ Telegram Stars',pay_crypto:'💎 CryptoBot',share_txt:'QUICK AI — real-time market signals and analysis',rank_t:'Rank',to_next:'To rank “{n}”: {k} more',rank_max:'Top rank',r0:'Rookie',r1:'Apprentice',r2:'Trader',r3:'Pro',r4:'Master',r5:'Legend',last10:'Last 10 trades',best_pair:'Best pair',best_streak:'Best win streak',ach_t:'Achievements',a1:'First signal',a2:'10 trades',a3:'3 wins in a row',a4:'50 trades',a5:'Invited a friend',a6:'Pro trader',time_go:'Get signal',u_h:'h',u_m:'min',u_s:'s'});
+const LS={get(k,d){try{const v=JSON.parse(localStorage.getItem(k));return v??d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+let lang=LS.get('qa_lang',null)||({uz:'uz',ru:'ru'}[(tg?.initDataUnsafe?.user?.language_code||'').slice(0,2)]||'en');
+const t=(k,v={})=>{let s=I[lang][k]??I.ru[k]??k;for(const x in v)s=s.split('{'+x+'}').join(v[x]);return s};
+const PAIRS=['EUR/USD','GBP/USD','USD/JPY','AUD/USD','BTC/USD','ETH/USD'],TFKEYS=['1min','5min','15min'],TFSEC={'1min':60,'5min':300,'15min':900};
+let pair='EUR/USD',tf='1min',candles=[],anchor=0,nextRoll=0,vol=0,analyzing=false,scanT=-1,marker=null,lastPrice=0,loadId=0,used=0,limit=10,trade=null,settling=false,stateMode='idle',me=null,src='sim',lastTick=0,livePx=0,tdLive=false;
+const $=id=>document.getElementById(id),isCrypto=()=>/^(BTC|ETH)\//.test(pair);
+const decFor=p=>p.includes('JPY')?3:(p.includes('BTC')||p.includes('ETH'))?2:5,dec=()=>decFor(pair);
+const TF=k=>t('tf'+k);
+
+// ── звук ──
+let SND=LS.get('qa_snd',1),ac=null;
+function beep(fs){if(!SND)return;try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();const t0=ac.currentTime,d=.13;fs.forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(.0001,t0+i*d);g.gain.exponentialRampToValueAtTime(.16,t0+i*d+.02);g.gain.exponentialRampToValueAtTime(.0001,t0+i*d+d);o.connect(g);g.connect(ac.destination);o.start(t0+i*d);o.stop(t0+i*d+d)})}catch(e){}}
+$('snd').onclick=()=>{SND=SND?0:1;LS.set('qa_snd',SND);$('snd').textContent=SND?'🔊':'🔇';if(SND)beep([660])};$('snd').textContent=SND?'🔊':'🔇';
+
+async function api(path,body){
+  const r=await fetch(path,{method:body?'POST':'GET',headers:{'Content-Type':'application/json','X-Init-Data':tg?.initData||''},body:body?JSON.stringify(body):undefined});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok){if(r.status===401||r.status===403)lock(j.code);throw Object.assign(new Error(j.error||''),{status:r.status,code:j.code,n:j.n})}
+  return j}
+function lock(c){$('lockmsg').textContent=t(c==='unauth'?'lock_unauth':'lock_forbid');$('lock').style.display='flex'}
+const errText=e=>t('err_'+e.code,{n:e.n})!=='err_'+e.code?t('err_'+e.code,{n:e.n}):t('err_generic');
+
+// ── язык ──
+function drawLangs(){const el=$('lgs');el.innerHTML='';['ru','uz','en'].forEach(k=>{const b=document.createElement('button');b.className='lg'+(k===lang?' on':'');b.textContent=k.toUpperCase();b.onclick=()=>{if(analyzing||k===lang)return;lang=k;LS.set('qa_lang',k);applyLang();api('/api/lang',{lang:k}).catch(()=>{})};el.append(b)})}
+function applyLang(){
+  document.documentElement.lang=lang;
+  document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));
+  document.querySelectorAll('[data-ph]').forEach(e=>e.placeholder=t(e.dataset.ph));
+  drawLangs();draw();drawInds();renderRisk();calNote();updLim();setTl();setSrc(src,true);renderWiz();
+  if(!analyzing){$('go').textContent=t('go');if(stateMode==='idle')idle()}
+  if(trade)renderTrade();renderMe();}
+
+function chips(el,items,cur,fn){el.innerHTML='';for(const k in items){const d=document.createElement('div');d.className='chip'+(k==cur?' on':'');d.textContent=items[k];d.onclick=()=>{if(!analyzing)fn(k)};el.append(d)}}
+function draw(){chips($('pairs'),Object.fromEntries(PAIRS.map(p=>[p,p])),pair,k=>{pair=k;marker=null;idle();draw();calNote();setSrc('sim');binConnect();loadChart()});
+  chips($('tfs'),Object.fromEntries(TFKEYS.map(k=>[k,TF(k)])),tf,k=>{tf=k;marker=null;idle();draw();setTl();loadChart()})}
+function idle(){stateMode='idle';$('state').innerHTML=`<div class="idle"><b>${t('idle_t')}</b>${t('idle_d')}</div>`}
+function flash(msg){stateMode='msg';$('state').innerHTML=`<div class="idle"><b>${t('wait_t')}</b>${msg}</div>`}
+let plan={pro:false,until:0,credits:0},payOpen=false;
+const updLim=()=>{$('lim').textContent=plan.pro?'👑 PRO':t('credits_left',{n:plan.credits});renderProfile()};
+const setTl=()=>{$('tl').textContent=t('tl',{tf:TF(tf)})};
+function setSrc(x,force){if(src!==x||force){src=x;$('src').textContent=t('src_'+x)}}
+function setRoll(){const s=TFSEC[tf],n=Date.now()/1000;nextRoll=(Math.floor(n/s)+1)*s*1000}
+
+async function loadChart(){
+  const id=++loadId;
+  try{const d=await api(`/api/chart?pair=${encodeURIComponent(pair)}&tf=${tf}`);if(id!==loadId)return;tdLive=!!d.live;
+    const prev=candles.length?candles[candles.length-1].c:null,live=(Date.now()-lastTick<4000)?livePx:null;
+    candles=d.candles;const last=candles[candles.length-1];anchor=last.c;
+    vol=candles.slice(-20).reduce((a,c)=>a+(c.h-c.l),0)/20*0.09;
+    if(live){anchor=live;last.c=live;last.h=Math.max(last.h,live);last.l=Math.min(last.l,live)}
+    else if(prev!==null&&Math.abs(prev-anchor)<vol*40){last.c=prev;last.h=Math.max(last.h,prev);last.l=Math.min(last.l,prev)}
+    setRoll();$('pn').textContent=pair;setTl();
+  }catch(e){}
+}
+// реальные тики
+function onTick(p,from){if(!candles.length||!(p>0))return;lastTick=Date.now();livePx=p;anchor=p;setSrc(from);const l=candles[candles.length-1];l.c=p;l.h=Math.max(l.h,p);l.l=Math.min(l.l,p)}
+let bws=null,btok=0;
+function binConnect(){btok++;const my=btok;if(bws){try{bws.close()}catch(e){}bws=null}if(!isCrypto())return;
+  const s=pair.slice(0,3).toLowerCase()+'usdt';
+  try{const w=new WebSocket(`wss://stream.binance.com:9443/ws/${s}@trade`);bws=w;
+    w.onmessage=e=>{if(my!==btok)return;try{onTick(parseFloat(JSON.parse(e.data).p),'bin')}catch(_){}};
+    w.onclose=()=>{if(my===btok)setTimeout(()=>{if(my===btok)binConnect()},3000)};
+    w.onerror=()=>{try{w.close()}catch(_){}}}catch(e){}}
+setInterval(async()=>{if(!tdLive||isCrypto()||!candles.length)return;try{const d=await api('/api/price?pair='+encodeURIComponent(pair));if(d.price)onTick(d.price,'td')}catch(e){}},1000);
+// имитация между обновлениями, если нет реальных тиков
+function randn(){return (Math.random()+Math.random()+Math.random()-1.5)*1.6}
+setInterval(()=>{
+  if(!candles.length)return;let last=candles[candles.length-1];
+  if(Date.now()>=nextRoll){const o=last.c;candles.push({o,h:o,l:o,c:o});if(candles.length>80)candles.shift();setRoll();last=candles[candles.length-1]}
+  if(Date.now()-lastTick<4000)return;
+  if(src!=='sim')setSrc('sim');
+  last.c+=(anchor-last.c)*0.04+randn()*vol;last.h=Math.max(last.h,last.c);last.l=Math.min(last.l,last.c);
+},350);
+setInterval(()=>{if(!analyzing)loadChart()},20000);
+
+// ── индикаторы ──
+function haCalc(){const out=[];candles.forEach((c,i)=>{const hc=(c.o+c.h+c.l+c.c)/4,ho=i?(out[i-1].o+out[i-1].c)/2:(c.o+c.c)/2;out.push({o:ho,c:hc,h:Math.max(c.h,ho,hc),l:Math.min(c.l,ho,hc)})});return out}
+function emaArr(v,n){const k=2/(n+1);let e=v[0];return v.map(x=>(e=x*k+e*(1-k)))}
+const IND=LS.get('qa_ind',{ema:1,st:1,dc:1}),IK=['ema','st','dc'];
+function drawInds(){const el=$('inds');el.innerHTML='';IK.forEach(k=>{const d=document.createElement('div');d.className='chip'+(IND[k]?' on':'');d.textContent=t('ind_'+k);d.onclick=()=>{IND[k]=IND[k]?0:1;LS.set('qa_ind',IND);drawInds()};el.append(d)})}
+function atrS(c,n=10){const tr=c.map((x,i)=>i?Math.max(x.h-x.l,Math.abs(x.h-c[i-1].c),Math.abs(x.l-c[i-1].c)):x.h-x.l);let a=tr.slice(0,n).reduce((p,q)=>p+q,0)/n;return tr.map((v,i)=>{if(i<n)return tr.slice(0,i+1).reduce((p,q)=>p+q,0)/(i+1);a=(a*(n-1)+v)/n;return a})}
+function stCalc(c,n=10,m=3){const atr=atrS(c,n);let up=true,fu=0,fl=0;return c.map((x,i)=>{const hl=(x.h+x.l)/2,bu=hl+m*atr[i],bl=hl-m*atr[i];
+  if(!i){fu=bu;fl=bl}else{const pc=c[i-1].c;fu=(bu<fu||pc>fu)?bu:fu;fl=(bl>fl||pc<fl)?bl:fl;if(up&&x.c<fl)up=false;else if(!up&&x.c>fu)up=true}
+  return {v:up?fl:fu,up}})}
+function dcCalc(c,n=20){return c.map((x,i)=>{const w=c.slice(Math.max(0,i-n+1),i+1);return {hi:Math.max(...w.map(q=>q.h)),lo:Math.min(...w.map(q=>q.l))}})}
+const getOff=()=>LS.get('qa_off_'+pair,0);
+function calNote(){const o=getOff();$('calnote').textContent=o?t('cal_off',{o:(o>0?'+':'')+o.toFixed(decFor(pair))}):t('cal_hint')}
+$('calbtn').onclick=()=>{const v=parseFloat($('calin').value);if(!(v>0)||!anchor)return;const o=v-anchor;if(Math.abs(o)>anchor*0.01){$('calnote').textContent=t('cal_big');return}LS.set('qa_off_'+pair,o);$('calin').value='';calNote()};
+$('calrst').onclick=()=>{LS.set('qa_off_'+pair,0);calNote()};
+
+const SHOW=40;
+const cv=$('cv'),ctx=cv.getContext('2d');let t0=performance.now(),vlo=0,vhi=0;
+function frame(now){
+  const dpr=devicePixelRatio||1,W=cv.clientWidth,H=cv.clientHeight;
+  if(cv.width!==W*dpr||cv.height!==H*dpr){cv.width=W*dpr;cv.height=H*dpr}
+  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
+  if(candles.length){
+    const haAll=haCalc(),ha=haAll.slice(-SHOW),cl=haAll.map(x=>x.c),e9=emaArr(cl,9).slice(-SHOW),e21=emaArr(cl,21).slice(-SHOW),raw=candles[candles.length-1],OFF=getOff(),stA=IND.st?stCalc(haAll).slice(-SHOW):null,dcA=IND.dc?dcCalc(candles).slice(-SHOW):null;
+    let hi=Math.max(...ha.map(c=>c.h),raw.c,...(dcA?dcA.map(q=>q.hi):[])),lo=Math.min(...ha.map(c=>c.l),raw.c,...(dcA?dcA.map(q=>q.lo):[]));const pad=(hi-lo)*.12||1e-6;hi+=pad;lo-=pad;
+    if(!vhi){vhi=hi;vlo=lo}vhi+=(hi-vhi)*.1;vlo+=(lo-vlo)*.1;
+    const y=v=>H-14-(v-vlo)/(vhi-vlo)*(H-28),w=(W-52)/ha.length;
+    ctx.strokeStyle='#1B2440';ctx.lineWidth=1;ctx.font='10px Manrope';ctx.fillStyle='#5b678b';ctx.textAlign='right';
+    for(let i=1;i<5;i++){const yy=H*i/5;ctx.beginPath();ctx.moveTo(0,yy);ctx.lineTo(W-48,yy);ctx.stroke();const v=vhi-(vhi-vlo)*((yy-14)/(H-28));ctx.fillText((v+OFF).toFixed(dec()),W-2,yy-3)}
+    ha.forEach((c,i)=>{const x=i*w+w/2,up=c.c>=c.o;ctx.strokeStyle=ctx.fillStyle=up?'#19E3A0':'#FF4D6A';ctx.lineWidth=1.2;
+      ctx.beginPath();ctx.moveTo(x,y(c.h));ctx.lineTo(x,y(c.l));ctx.stroke();
+      ctx.fillRect(x-w*.32,Math.min(y(c.o),y(c.c)),w*.64,Math.max(2,Math.abs(y(c.o)-y(c.c))))});
+    if(dcA){ctx.beginPath();dcA.forEach((q,i)=>{const x=i*w+w/2;i?ctx.lineTo(x,y(q.hi)):ctx.moveTo(x,y(q.hi))});for(let i=dcA.length-1;i>=0;i--)ctx.lineTo(i*w+w/2,y(dcA[i].lo));ctx.closePath();ctx.fillStyle='rgba(123,136,173,.09)';ctx.fill();
+      ctx.strokeStyle='rgba(160,172,210,.55)';ctx.lineWidth=1;['hi','lo'].forEach(k=>{ctx.beginPath();dcA.forEach((q,i)=>{const x=i*w+w/2;i?ctx.lineTo(x,y(q[k])):ctx.moveTo(x,y(q[k]))});ctx.stroke()})}
+    if(stA){ctx.lineWidth=2;for(let i=1;i<stA.length;i++){if(stA[i].up!==stA[i-1].up)continue;ctx.strokeStyle=stA[i].up?'#19E3A0':'#FF4D6A';ctx.beginPath();ctx.moveTo((i-1)*w+w/2,y(stA[i-1].v));ctx.lineTo(i*w+w/2,y(stA[i].v));ctx.stroke()}}
+    (IND.ema?[[e9,'#6C7BFF'],[e21,'#FFB84D']]:[]).forEach(([arr,col])=>{ctx.strokeStyle=col;ctx.lineWidth=1.5;ctx.beginPath();arr.forEach((v,i)=>{const x=i*w+w/2;i?ctx.lineTo(x,y(v)):ctx.moveTo(x,y(v))});ctx.stroke()});
+    const lh=ha[ha.length-1],up=lh.c>=lh.o,col=up?'#19E3A0':'#FF4D6A',ly=y(raw.c),pulse=(Math.sin((now-t0)/260)+1)/2;
+    ctx.setLineDash([4,4]);ctx.strokeStyle=col;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,ly);ctx.lineTo(W-48,ly);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle=col;ctx.fillRect(W-50,ly-9,50,18);ctx.fillStyle='#04120c';ctx.font='700 10px Manrope';ctx.textAlign='center';ctx.fillText((raw.c+OFF).toFixed(dec()),W-25,ly+3.5);
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc((ha.length-1)*w+w/2,y(lh.c),2.5+pulse*3,0,7);ctx.fill();
+    const pe=$('pr');pe.textContent=(raw.c+OFF).toFixed(dec());pe.style.color=lastPrice&&raw.c!==lastPrice?(raw.c>lastPrice?'#19E3A0':'#FF4D6A'):'';lastPrice=raw.c;
+    if(marker){const my=y(marker.price);ctx.strokeStyle=marker.dir==='CALL'?'#19E3A0':'#FF4D6A';ctx.lineWidth=1.5;ctx.setLineDash([2,3]);ctx.beginPath();ctx.moveTo(0,my);ctx.lineTo(W-48,my);ctx.stroke();ctx.setLineDash([]);
+      ctx.fillStyle=ctx.strokeStyle;ctx.font='700 11px Manrope';ctx.textAlign='left';ctx.fillText(marker.dir==='CALL'?'▲ CALL':'▼ PUT',8,my-6)}
+    if(scanT>=0){const x=scanT*W,g=ctx.createLinearGradient(x-70,0,x,0);g.addColorStop(0,'rgba(108,123,255,0)');g.addColorStop(1,'rgba(108,123,255,.35)');
+      ctx.fillStyle=g;ctx.fillRect(x-70,0,70,H);ctx.strokeStyle='#8ea0ff';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+  }
+  requestAnimationFrame(frame)
+}
+
+// ── сделка ──
+function renderTrade(){
+  const b=$('trade');if(!trade)return;
+  const left=Math.max(0,trade.end-Date.now()),sec=Math.ceil(left/1000),mm=String(Math.floor(sec/60)).padStart(2,'0'),ss=String(sec%60).padStart(2,'0'),dur=(trade.dur||TFSEC[trade.tf])*1000;
+  b.style.display='block';
+  b.innerHTML=`<div class="h">${t('trade_t')}</div><div class="trow"><span class="tag ${trade.dir}">${trade.dir==='CALL'?'▲ CALL':'▼ PUT'}</span><span>${trade.pair}</span><div class="cd">${mm}:${ss}</div></div>
+  <div class="pbar"><div style="width:${Math.min(100,100-left/dur*100)}%"></div></div><small class="m">${t('entry_price',{p:trade.entry.toFixed(decFor(trade.pair)),tf:fmtExp(trade.dur||TFSEC[trade.tf])})}</small>`}
+async function settle(){
+  if(settling||!trade)return;settling=true;const tr=trade;
+  try{
+    const r=await api('/api/settle',{id:tr.id});trade=null;
+    const cls={W:'win',L:'lose'}[r.res]||'draw';
+    $('trade').innerHTML=`<div class="h">${t('res_t')}</div><div class="res ${cls}">${t('res_'+r.res)}</div><small class="m">${t('res_note',{pair:tr.pair,a:tr.entry.toFixed(decFor(tr.pair)),b:r.exit?r.exit.toFixed(decFor(tr.pair)):'—'})}</small>`;
+    tg?.HapticFeedback?.notificationOccurred(r.res==='W'?'success':r.res==='L'?'error':'warning');
+    beep(r.res==='W'?[660,880,1100]:r.res==='L'?[330,262]:[440]);
+    setTimeout(()=>{if(!trade)$('trade').style.display='none'},9000);loadMe();
+  }catch(e){tr.end=Date.now()+(e.status===425?3000:8000)}
+  settling=false}
+setInterval(()=>{if(!trade)return;Date.now()>=trade.end?settle():renderTrade()},1000);
+
+function renderMe(){
+  if(!me)return;const s=me.stats,w=s.wins,l=s.losses;
+  $('stats').innerHTML=s.total?`<div class="grid3"><div><small>${t('st_total')}</small><b>${s.total}</b></div><div><small>${t('st_w')}</small><b class="W">${w}</b></div><div><small>${t('st_l')}</small><b class="L">${l}</b></div></div><small class="m">${t('st_pct',{p:Math.round(w/Math.max(w+l,1)*100)})}</small>`:`<small class="m">${t('st_empty')}</small>`;
+  $('hist').innerHTML=me.history.map(x=>`<div class="hi"><span>${x.dir==='CALL'?'▲':'▼'} ${x.pair} · ${fmtExp(x.dur||TFSEC[x.tf])}</span><span class="${x.result}">${t('h_'+x.result)}</span></div>`).join('');
+  const st=$('streak');if(me.streak>=3){st.style.display='block';st.textContent=t('streak',{n:me.streak})}else st.style.display='none'}
+async function loadMe(){
+  try{me=await api('/api/me');plan=me.plan;updLim();
+    if(me.active&&!trade){trade=me.active;renderTrade()}
+    if(!LS.get('qa_lang',null)&&me.lang&&me.lang!==lang){lang=me.lang;applyLang()}
+    renderMe();
+  }catch(e){}}
+
+// ── калькулятор ──
+let risk=LS.get('qa_risk',2);
+function renderRisk(){
+  $('rk').innerHTML='';[1,2,5].forEach(r=>{const d=document.createElement('div');d.className='chip'+(r===risk?' on':'');d.textContent=r+'%';d.onclick=()=>{risk=r;LS.set('qa_risk',r);renderRisk()};$('rk').append(d)});
+  const dep=parseFloat($('dep').value);
+  $('rkout').innerHTML=dep>0?t('risk_out',{a:'<b style="color:var(--tx)">$'+(dep*risk/100).toFixed(2)+'</b>',r:risk}):t('risk_hint')}
+$('dep').value=LS.get('qa_dep','');$('dep').oninput=()=>{LS.set('qa_dep',$('dep').value);renderRisk()};
+
+// ── пошаговый мастер: пара → время → анализ → результат ──
+const WZ=['pair','time','an','res'];let lastRes=null,wstep='pair';
+function wz(n){wstep=n;WZ.forEach(k=>$('w-'+k).classList.toggle('on',k===n))}
+function view(n){['sig','chart','prof'].forEach(k=>{$('v-'+k).classList.toggle('on',k===n);document.querySelector('[data-tab='+k+']').classList.toggle('on',k===n)})}
+document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>view(b.dataset.tab));
+function renderWiz(){
+  $('pg').innerHTML=PAIRS.map(p=>`<div class="pc${p===pair?' on':''}" data-p="${p}">${p}<small>${t(/^(BTC|ETH)\//.test(p)?'cat_cr':'cat_fx')}</small></div>`).join('');
+  $('pg').querySelectorAll('.pc').forEach(e=>e.onclick=()=>{if(analyzing)return;pair=e.dataset.p;marker=null;draw();calNote();setSrc('sim');binConnect();loadChart();renderWiz();wz('time')});
+  renderTime();
+  $('wt-h').textContent=pair+' · '+t('pick_time');
+  if(wstep==='res'&&lastRes)showRes(lastRes,true)}
+$('b-time').onclick=()=>wz('pair');
+
+let exp=LS.get('qa_exp',60);
+const fmtExp=v=>[Math.floor(v/3600)?Math.floor(v/3600)+' '+t('u_h'):'',Math.floor(v%3600/60)?Math.floor(v%3600/60)+' '+t('u_m'):'',v%60?v%60+' '+t('u_s'):''].filter(Boolean).join(' ')||'0';
+const PRESETS=[['M1',60],['M3',180],['M5',300],['M15',900],['M30',1800],['H1',3600],['H4',14400]],pad2=n=>String(n).padStart(2,'0');
+function setExp(v){exp=Math.max(60,Math.min(14400,v));LS.set('qa_exp',exp);const nt=exp<=180?'1min':exp<=600?'5min':'15min';if(nt!==tf){tf=nt;marker=null;draw();setTl();loadChart()}renderTime()}
+function renderTime(){
+  $('tp-h').textContent=pad2(Math.floor(exp/3600));$('tp-m').textContent=pad2(Math.floor(exp%3600/60));$('tp-s').textContent=pad2(exp%60);
+  $('presets').innerHTML=PRESETS.map(([l,v])=>`<div class="chip${v===exp?' on':''}" data-v="${v}">${l}</div>`).join('');
+  $('presets').querySelectorAll('.chip').forEach(e=>e.onclick=()=>{if(!analyzing)setExp(+e.dataset.v)})}
+document.querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>{if(!analyzing)setExp(exp+ +b.dataset.st)});
+$('t-go').onclick=runAnalysis;
+
+// ── профиль ──
+function inviteFriend(){if(!me||!me.bot)return;const link=`https://t.me/${me.bot}?start=ref_${me.uid}`,u=`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(t('share_txt'))}`;tg?.openTelegramLink?tg.openTelegramLink(u):window.open(u,'_blank')}
+function payGo(k){if(!me||!me.bot)return;const u=`https://t.me/${me.bot}?start=pay_${k}`;tg?.openTelegramLink?tg.openTelegramLink(u):window.open(u,'_blank')}
+function openPay(){payOpen=true;renderProfile();const e=$('paybox');if(e&&e.scrollIntoView)e.scrollIntoView({behavior:'smooth',block:'center'})}
+const RANKS=[0,5,20,50,100,250];
+function renderProfile(){
+  if(!me)return;const p=plan,o=me.offer||{},pf=me.profile||{},tot=(me.stats&&me.stats.total)||0;
+  const until=p.until?new Date(p.until).toLocaleDateString(lang==='en'?'en-GB':'ru-RU'):'';
+  $('plan').innerHTML=`<div class="h">${p.pro?'👑 '+t('pro_active'):t('plan_free')}</div>
+    <div class="prow">${p.pro?`<span class="badge pro">PRO</span><span>${until?t('pro_until',{d:until}):t('pro_forever')}</span>`:`<span class="badge">FREE</span><span>${t('credits_left',{n:p.credits})}</span>`}</div>
+    <div class="two"><button class="sbtn" id="p-inv">${t('invite_btn')} (+${o.ref||2})</button><button class="wbtn" style="margin:0" id="p-buy">${t('buy_pro')}</button></div>
+    <div id="paybox" style="display:${payOpen?'block':'none'}"><div class="offer">${t('offer',{days:o.days||30,stars:o.stars||250,usdt:o.usdt||5})}</div>
+    <div class="two"><button class="sbtn" id="p-stars">${t('pay_stars')}</button>${me.crypto?`<button class="sbtn" id="p-crypto">${t('pay_crypto')}</button>`:''}</div></div>`;
+  $('p-inv').onclick=inviteFriend;$('p-buy').onclick=()=>{payOpen=!payOpen;renderProfile()};$('p-stars').onclick=()=>payGo('stars');
+  const pc=$('p-crypto');if(pc)pc.onclick=()=>payGo('crypto');
+  let ri=0;RANKS.forEach((v,i)=>{if(tot>=v)ri=i});const nx=RANKS[ri+1],bp=pf.best_pair;
+  $('rank').innerHTML=`<div class="h">${t('rank_t')}: ${t('r'+ri)}</div><div class="bar"><div style="width:${nx?Math.min(100,(tot-RANKS[ri])/(nx-RANKS[ri])*100):100}%"></div></div>
+    <small class="m">${nx?t('to_next',{n:t('r'+(ri+1)),k:nx-tot}):t('rank_max')}</small>
+    <div class="dots">${(pf.last10||[]).map(r=>`<span class="dot ${r}"></span>`).join('')}</div><small class="m">${t('last10')}</small>
+    <div class="tiles"><div><small>${t('best_pair')}</small><b>${bp?bp.pair+' · '+bp.wr+'%':'—'}</b></div><div><small>${t('best_streak')}</small><b>${pf.best_streak||0}</b></div></div>`;
+  const A=[['a1',tot>=1,'🎯'],['a2',tot>=10,'🔟'],['a3',(pf.best_streak||0)>=3,'🔥'],['a4',tot>=50,'🏅'],['a5',((me.refs&&me.refs.n)||0)>=1,'🤝'],['a6',p.pro,'👑']];
+  $('ach').innerHTML=`<div class="h">${t('ach_t')}</div><div class="ach">${A.map(([k,on,ic])=>`<div class="ab${on?' on':''}"><span>${on?ic:'🔒'}</span>${t(k)}</div>`).join('')}</div>`}
+
+async function runAnalysis(){
+  if(analyzing)return;
+  if(trade){showRes({error:t('err_busy'),soft:1});return}
+  if(!plan.pro&&plan.credits<=0){showRes({error:t('err_nocredits',{n:me?.offer?.ref||2}),code:'nocredits',soft:1});return}
+  analyzing=true;marker=null;wz('an');beep([520]);tg?.HapticFeedback?.impactOccurred('medium');
+  const STEPS=['s1','s2','s3','s4','s5','s6'].map(k=>t(k));$('an-pair').textContent=pair+' · '+fmtExp(exp);
+  const reqP=api('/api/analyze',{pair,exp,lang}).catch(e=>({error:errText(e),code:e.code}));
+  const DUR=4600,start=performance.now();let si=-1;
+  await new Promise(res=>{(function tick(){const p=Math.min((performance.now()-start)/DUR,1);
+    $('an-pct').textContent=Math.round(p*100)+'%';$('an-t').textContent=t(p<.5?'an1':'an2');$('an-fill').style.width=p*100+'%';
+    const i=Math.min(Math.floor(p*STEPS.length),STEPS.length-1);if(i!==si){si=i;$('an-s').textContent=STEPS[i];tg?.HapticFeedback?.selectionChanged?.()}
+    p<1?requestAnimationFrame(tick):res()})()});
+  const d=await reqP;analyzing=false;lastRes=d;showRes(d)}
+
+function showRes(d,re){
+  wz('res');const box=$('rc');
+  const nav=`<button class="wbtn" id="r-again">⟳ ${t('again')}</button><div class="two"><button class="sbtn" id="r-time">${t('chg_time')}</button><button class="sbtn" id="r-pair">${t('chg_pair')}</button></div>`;
+  const pay=d.code==='nocredits',nav2=pay?`<button class="wbtn" id="r-inv">${t('invite_btn')}</button><button class="sbtn" style="width:100%;margin-top:10px" id="r-buy">${t('buy_pro')}</button>`:nav;
+  if(d.error){box.innerHTML=`<div class="idle" style="padding:18px 0"><b>${t(d.soft?'wait_t':'no_sig')}</b>${d.error}</div>`+nav2}
+  else{
+    const a=d.analysis,dir=a.direction,w=dir==='WAIT',lbl=dir==='CALL'?'BUY':dir==='PUT'?'SELL':t('waitv'),ar=dir==='CALL'?'▲':dir==='PUT'?'▼':'⏸',lvl=a.strength>=70?'conf_hi':a.strength>=45?'conf_mid':'conf_lo';
+    if(!re){plan=d.plan;updLim()}
+    box.innerHTML=`<div class="reveal"><div class="rhead"><span>${pair}</span><span>${t('exp')}: ${w?'—':fmtExp(exp)}</span></div>
+      <div class="bigdir ${dir}"><span>${ar}</span>${lbl}</div>
+      <div class="rrow"><small>${t('conf')}</small><b>${t(lvl)} · ${a.strength}%</b></div><div class="bar"><div id="bf"></div></div>
+      <details><summary>${t('why')}</summary><ul>${a.reasons.map(x=>`<li>${x}</li>`).join('')}</ul></details></div>`+nav+`<button class="lnk" id="r-chart">📈 ${t('open_chart')}</button>`;
+    requestAnimationFrame(()=>{const b=$('bf');if(b)b.style.width=a.strength+'%'});
+    if(!re){
+      if(d.signal){marker={dir,price:candles[candles.length-1].c};trade={id:d.signal.id,pair,tf,dir,entry:d.signal.entry,end:d.signal.end,dur:d.signal.dur};renderTrade()}
+      tg?.HapticFeedback?.notificationOccurred(w?'warning':'success');
+      beep(dir==='CALL'?[660,880]:dir==='PUT'?[660,440]:[440])}
+  }
+  const bind=(id,f)=>{const e=$(id);if(e)e.onclick=f};bind('r-again',runAnalysis);bind('r-time',()=>wz('time'));bind('r-pair',()=>wz('pair'));bind('r-inv',inviteFriend);bind('r-buy',()=>{view('prof');openPay()});
+  const rc=$('r-chart');if(rc)rc.onclick=()=>view('chart')}
+setExp(exp);applyLang();binConnect();loadChart();loadMe();requestAnimationFrame(frame);
+</script></body></html>
